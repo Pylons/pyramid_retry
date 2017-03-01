@@ -1,19 +1,8 @@
 import sys
 
-PY3 = sys.version_info[0] == 3
+PY2 = sys.version_info[0] == 2
 
-if PY3:
-    def reraise(tp, value, tb=None):
-        try:
-            if value is None:  # pragma: nocover
-                value = tp()
-            if value.__traceback__ is not tb:  # pragma: nocover
-                raise value.with_traceback(tb)
-            raise value
-        finally:
-            value = None
-            tb = None
-else:
+if PY2:
     def exec_(_code_, _globs_=None, _locs_=None):
         """Execute code in a namespace."""
         if _globs_ is None:
@@ -32,3 +21,15 @@ else:
     finally:
         tb = None
 """)
+
+else:
+    def reraise(tp, value, tb=None):
+        try:
+            if value is None:  # pragma: nocover
+                value = tp()
+            if value.__traceback__ is not tb:  # pragma: nocover
+                raise value.with_traceback(tb)
+            raise value
+        finally:
+            value = None
+            tb = None
