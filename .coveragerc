@@ -1,0 +1,14 @@
+[run]
+parallel = true
+source =
+    pyramid_retry
+    tests
+
+[paths]
+source =
+    src/pyramid_retry
+    */site-packages/pyramid_retry
+
+[report]
+show_missing = true
+precision = 2
