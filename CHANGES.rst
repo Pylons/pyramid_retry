@@ -1,5 +1,5 @@
-unreleased
-==========
+0.2 (2017-03-02)
+================
 
 - Change the default attempts to 3 instead of 1.
 
