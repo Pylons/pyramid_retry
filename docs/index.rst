@@ -62,7 +62,11 @@ of attempts per request. The default number of attempts is ``1``.
 
 The policy will handle any requests that fail because the application
 raised an instance of :class:`pyramid_retry.RetryableException` or another
-exception implementing the :class:`pyramid_retry.IRetryableError` interface:
+exception implementing the :class:`pyramid_retry.IRetryableError` interface.
+
+The below, very contrived example, shows conceptually what's going on when
+a request is retried. The ``failing_view`` is executed initially and for
+the final attempt the ``recovery_view`` is executed.
 
 .. code-block:: python
 
@@ -70,13 +74,82 @@ exception implementing the :class:`pyramid_retry.IRetryableError` interface:
    def failing_view(request):
        raise RetryableException
 
-   @view_config(route_name='home', last_retry_attempt=True, renderer='string')
+   @view_config(route_name='home', is_last_attempt=True, renderer='string')
    def recovery_view(request):
        return 'success'
 
-In this example, assuming ``retry.attempts`` was set to ``3``, the
-``failing_view`` would be executed twice and finally the ``recover_view``
-would return ``success`` on the final attempt.
+Of course you probably wouldn't write actual code that expects to fail like
+this. More realistically you may use a library like pyramid_tm_ to translate
+certain transactional errors marked as "transient" into retryable errors.
+
+.. _pyramid_tm: http://docs.pylonsproject.org/projects/pyramid-tm/en/latest/
+
+Custom Retryable Errors
+-----------------------
+
+The simple approach to marking errors as retryable is to simply catch the
+error and raise a :class:`pyramid_retry.RetryableException` instead:
+
+.. code-block:: python
+
+   from pyramid_retry import RetryableException
+   import requests
+
+   def view(request):
+       try:
+           response = requests.get('https://www.google.com')
+       except requests.Timeout:
+           raise RetryableException
+
+This will work but if this is the last attempt then the failed request will
+not actually be retried and on top of that the original exception is lost.
+
+A better approach is to preserve the original exception and simply mark it
+as retryable using the :class:`pyramid_retry.IRetryableError` marker
+interface:
+
+.. code-block:: python
+
+   from pyramid_retry import IRetryableError
+   import requests
+   import zope.interface
+
+   # mark requests.Timeout errors as retryable
+   zope.interface.classImplements(requests.Timeout, IRetryableError)
+
+   def view(request):
+       response = requests.get('https://www.google.com')
+
+View Predicates
+---------------
+
+When the library is included in your application it registers two new view
+predicates which are especially useful on exception views to determine
+when to handle certain errors.
+
+``is_exc_retryable`` will match the exception view
+only if the exception is both an :term:`retryable error` **and** there
+are remaining attempts in which the request would be retried. See
+:class:`pyramid_retry.RetryableExceptionPredicate` for more information.
+
+``is_last_attempt`` will match only if, when the view is executed, there
+will not be another attempt for this request.
+See :class:`pyramid_retry.LastAttemptPredicate` for more information.
+
+Caveats
+=======
+
+- In order to guarantee that a request can be retried it must make the body
+  seekable. This is done via ``request.make_body_seekable()``. Generally the
+  body is loaded directly from ``environ['wsgi.input']`` which is controlled
+  by the WSGI server. However to make the body seekable it is copied into a
+  seekable wrapper. In some cases this can lead to a very large copy operation
+  before the request is executed.
+
+- ``pyramid_retry`` does not copy the ``environ`` or make any attempt to
+  restore it to its original state before retrying a request. This means
+  anything stored on the ``environ`` will persist across requests created for
+  that ``environ``.
 
 More Information
 ================
