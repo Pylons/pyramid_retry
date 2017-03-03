@@ -136,7 +136,7 @@ def is_last_attempt(request):
 
 class RetryableExceptionPredicate(object):
     """
-    A :term:`view predicate` registered as ``exc_is_retryable``. Can be
+    A :term:`view predicate` registered as ``is_exc_retryable``. Can be
     used to determine if an exception view should execute based on whether
     the exception is a :term:`retryable error`.
 
@@ -162,7 +162,7 @@ class RetryableExceptionPredicate(object):
 
 class LastAttemptPredicate(object):
     """
-    A :term:`view predicate` registered as ``last_retry_attempt``. Can be used
+    A :term:`view predicate` registered as ``is_last_attempt``. Can be used
     to determine if an exception view should execute based on whether it's
     the last retry attempt before aborting the request.
 
@@ -189,7 +189,7 @@ def includeme(config):
     This will add the :func:`pyramid_retry.RetryableExecutionPolicy` with
     ``attempts`` pulled from the ``retry.attempts`` setting.
 
-    Also, the ``last_retry_attempt`` and ``exc_is_retryable`` view predicates
+    Also, the ``is_last_attempt`` and ``is_exc_retryable`` view predicates
     are also registered.
 
     This should be included in your Pyramid application via
@@ -198,13 +198,11 @@ def includeme(config):
     """
     settings = config.get_settings()
 
-    # bw-compat with pyramid_tm from which this code was derived by supporting
-    # the tm.attempts setting
-    attempts = int(settings.get('tm.attempts') or 1)
-    attempts = int(settings.get('retry.attempts') or attempts)
+    attempts = int(settings.get('retry.attempts') or 3)
+    settings['retry.attempts'] = attempts
 
     policy = RetryableExecutionPolicy(attempts)
     config.set_execution_policy(policy)
 
-    config.add_view_predicate('last_retry_attempt', LastAttemptPredicate)
-    config.add_view_predicate('exc_is_retryable', RetryableExceptionPredicate)
+    config.add_view_predicate('is_last_attempt', LastAttemptPredicate)
+    config.add_view_predicate('is_exc_retryable', RetryableExceptionPredicate)

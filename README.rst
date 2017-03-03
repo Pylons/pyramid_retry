@@ -32,7 +32,7 @@ Activate ``pyramid_retry`` by including it in your application:
 By default ``pyramid_retry`` will register an instance of
 ``pyramid_retry.RetryableExecutionPolicy`` as an execution policy in your
 application using the ``retry.attempts`` setting as the maximum number of
-attempts per request. The default number of attempts is ``1``.
+attempts per request. The default number of attempts is ``3``.
 
 The policy will handle any requests that fail because the application
 raised an instance of ``pyramid_retry.RetryableException`` or another
@@ -44,7 +44,7 @@ exception implementing the ``pyramid_retry.IRetryableError`` interface:
    def failing_view(request):
        raise RetryableException
 
-   @view_config(route_name='home', last_retry_attempt=True, renderer='string')
+   @view_config(route_name='home', is_last_attempt=True, renderer='string')
    def recovery_view(request):
        return 'success'
 
