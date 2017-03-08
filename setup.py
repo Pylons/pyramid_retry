@@ -47,6 +47,7 @@ setup(
     keywords='pyramid wsgi retry attempt',
     classifiers=[
         'Development Status :: 4 - Beta',
+        'Framework :: Pyramid',
         'Intended Audience :: Developers',
         'License :: OSI Approved :: MIT License',
         'Natural Language :: English',
