@@ -1,3 +1,4 @@
+from pyramid.exceptions import ConfigurationError
 from pyramid.httpexceptions import HTTPNotFound
 import sys
 from zope.interface import (
@@ -23,7 +24,7 @@ class RetryableException(Exception):
     """ A retryable exception should be raised when an error occurs."""
 
 
-def RetryableExecutionPolicy(attempts=1):
+def RetryableExecutionPolicy(attempts=3):
     """
     Create a :term:`execution policy` that catches any
     :term:`retryable error` and sends it through the pipeline again up to
@@ -69,7 +70,7 @@ def RetryableExecutionPolicy(attempts=1):
                 if exc is not None:
                     # if this is a retryable exception then continue to the
                     # next attempt, discarding the current response
-                    if is_exc_retryable(request, exc):
+                    if is_error_retryable(request, exc):
                         continue
 
                 return response
@@ -80,7 +81,7 @@ def RetryableExecutionPolicy(attempts=1):
                     # if this was the last attempt or the exception is not
                     # retryable then make a last ditch effort to render an
                     # error response before sending the exception up the stack
-                    if not is_exc_retryable(request, exc_info[1]):
+                    if not is_error_retryable(request, exc_info[1]):
                         try:
                             return request.invoke_exception_view(exc_info)
                         except HTTPNotFound:
@@ -97,7 +98,7 @@ def RetryableExecutionPolicy(attempts=1):
     return retry_policy
 
 
-def is_exc_retryable(request, exc):
+def is_error_retryable(request, exc):
     """
     Return ``True`` if the exception is recognized as :term:`retryable error`.
 
@@ -134,9 +135,9 @@ def is_last_attempt(request):
     return attempt + 1 == attempts
 
 
-class RetryableExceptionPredicate(object):
+class RetryableErrorPredicate(object):
     """
-    A :term:`view predicate` registered as ``is_exc_retryable``. Can be
+    A :term:`view predicate` registered as ``retryable_error``. Can be
     used to determine if an exception view should execute based on whether
     the exception is a :term:`retryable error`.
 
@@ -144,16 +145,21 @@ class RetryableExceptionPredicate(object):
 
     """
     def __init__(self, val, config):
+        if not isinstance(val, bool):
+            raise ConfigurationError(
+                'The "retryable_error" view predicate value must be '
+                'True or False.',
+            )
         self.val = val
 
     def text(self):
-        return 'exc_is_retryable = %s' % (self.val,)
+        return 'retryable_error = %s' % (self.val,)
 
     phash = text
 
     def __call__(self, context, request):
         exc = getattr(request, 'exception', None)
-        is_retryable = is_exc_retryable(request, exc)
+        is_retryable = is_error_retryable(request, exc)
         return (
             (self.val and is_retryable)
             or (not self.val and not is_retryable)
@@ -162,7 +168,7 @@ class RetryableExceptionPredicate(object):
 
 class LastAttemptPredicate(object):
     """
-    A :term:`view predicate` registered as ``is_last_attempt``. Can be used
+    A :term:`view predicate` registered as ``last_retry_attempt``. Can be used
     to determine if an exception view should execute based on whether it's
     the last retry attempt before aborting the request.
 
@@ -170,6 +176,11 @@ class LastAttemptPredicate(object):
 
     """
     def __init__(self, val, config):
+        if not isinstance(val, bool):
+            raise ConfigurationError(
+                'The "last_retry_attempt" view predicate value must be '
+                'True or False.',
+            )
         self.val = val
 
     def text(self):
@@ -186,11 +197,11 @@ def includeme(config):
     """
     Activate the ``pyramid_retry`` execution policy in your application.
 
-    This will add the :func:`pyramid_retry.RetryableExecutionPolicy` with
+    This will add the :func:`pyramid_retry.RetryableErrorPolicy` with
     ``attempts`` pulled from the ``retry.attempts`` setting.
 
-    Also, the ``is_last_attempt`` and ``is_exc_retryable`` view predicates
-    are also registered.
+    The ``last_retry_attempt`` and ``retryable_error`` view predicates
+    are registered.
 
     This should be included in your Pyramid application via
     ``config.include('pyramid_retry')``.
@@ -204,5 +215,5 @@ def includeme(config):
     policy = RetryableExecutionPolicy(attempts)
     config.set_execution_policy(policy)
 
-    config.add_view_predicate('is_last_attempt', LastAttemptPredicate)
-    config.add_view_predicate('is_exc_retryable', RetryableExceptionPredicate)
+    config.add_view_predicate('last_retry_attempt', LastAttemptPredicate)
+    config.add_view_predicate('retryable_error', RetryableErrorPredicate)

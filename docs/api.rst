@@ -8,14 +8,14 @@
 
   .. autofunction:: RetryableExecutionPolicy
 
-  .. autofunction:: is_exc_retryable
+  .. autofunction:: is_error_retryable
 
   .. autofunction:: is_last_attempt
 
   .. autoclass:: LastAttemptPredicate
      :members:
 
-  .. autoclass:: RetryableExceptionPredicate
+  .. autoclass:: RetryableErrorPredicate
      :members:
 
   .. autoexception:: RetryableException
