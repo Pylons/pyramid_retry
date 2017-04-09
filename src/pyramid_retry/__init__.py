@@ -1,3 +1,4 @@
+from pyramid.exceptions import ConfigurationError
 from pyramid.httpexceptions import HTTPNotFound
 import sys
 from zope.interface import (
@@ -144,6 +145,11 @@ class RetryableErrorPredicate(object):
 
     """
     def __init__(self, val, config):
+        if not isinstance(val, bool):
+            raise ConfigurationError(
+                'The "retryable_error" view predicate value must be '
+                'True or False.',
+            )
         self.val = val
 
     def text(self):
@@ -170,6 +176,11 @@ class LastAttemptPredicate(object):
 
     """
     def __init__(self, val, config):
+        if not isinstance(val, bool):
+            raise ConfigurationError(
+                'The "last_retry_attempt" view predicate value must be '
+                'True or False.',
+            )
         self.val = val
 
     def text(self):
