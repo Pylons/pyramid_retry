@@ -13,8 +13,8 @@ def test_raising_RetryableException_is_caught(config):
     def bad_view(request):
         calls.append('fail')
         raise RetryableException
-    config.add_view(bad_view, is_last_attempt=False)
-    config.add_view(final_view, is_last_attempt=True, renderer='string')
+    config.add_view(bad_view, last_retry_attempt=False)
+    config.add_view(final_view, last_retry_attempt=True, renderer='string')
     app = config.make_wsgi_app()
     app = webtest.TestApp(app)
     response = app.get('/')
@@ -32,8 +32,8 @@ def test_raising_IRetryableError_is_caught(config):
         ex = Exception()
         zope.interface.directlyProvides(ex, IRetryableError)
         raise ex
-    config.add_view(bad_view, is_last_attempt=False)
-    config.add_view(final_view, is_last_attempt=True, renderer='string')
+    config.add_view(bad_view, last_retry_attempt=False)
+    config.add_view(final_view, last_retry_attempt=True, renderer='string')
     app = config.make_wsgi_app()
     app = webtest.TestApp(app)
     response = app.get('/')
@@ -67,7 +67,7 @@ def test_handled_error_is_retried(config):
     config.add_view(bad_view)
     config.add_exception_view(default_exc_view, renderer='string')
     config.add_exception_view(
-        retryable_exc_view, is_exc_retryable=True, renderer='string')
+        retryable_exc_view, retryable_error=True, renderer='string')
     app = config.make_wsgi_app()
     app = webtest.TestApp(app)
     response = app.get('/')
