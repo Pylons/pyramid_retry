@@ -1,6 +1,13 @@
 unreleased
 ==========
 
+- Support a ``retry.activate_hook`` setting which can return a per-request
+  number of retries. See https://github.com/Pylons/pyramid_retry/pull/4
+
+- Configuration is deferred so that settings may be changed after
+  ``config.include('pyramid_retry')`` is invoked until the configurator
+  is committed. See https://github.com/Pylons/pyramid_retry/pull/4
+
 - Rename the view predicates to ``last_retry_attempt`` and
   ``retryable_error``. See https://github.com/Pylons/pyramid_retry/pull/3
 
