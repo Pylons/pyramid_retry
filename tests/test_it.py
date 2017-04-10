@@ -87,6 +87,44 @@ def test_retryable_exception_is_ignored_on_last_attempt(config):
         app.get('/')
     assert calls == ['fail', 'fail', 'fail']
 
+def test_activate_hook_overrides_default_attempts(config):
+    from pyramid_retry import RetryableException
+    calls = []
+    def activate_hook(request):
+        return 1
+    def bad_view(request):
+        calls.append('fail')
+        raise RetryableException
+    config.add_settings({
+        'retry.attempts': 3,
+        'retry.activate_hook': activate_hook,
+    })
+    config.add_view(bad_view)
+    app = config.make_wsgi_app()
+    app = webtest.TestApp(app)
+    with pytest.raises(Exception):
+        app.get('/')
+    assert calls == ['fail']
+
+def test_activate_hook_falls_back_to_default_attempts(config):
+    from pyramid_retry import RetryableException
+    calls = []
+    def activate_hook(request):
+        return None
+    def bad_view(request):
+        calls.append('fail')
+        raise RetryableException
+    config.add_settings({
+        'retry.attempts': 3,
+        'retry.activate_hook': activate_hook,
+    })
+    config.add_view(bad_view)
+    app = config.make_wsgi_app()
+    app = webtest.TestApp(app)
+    with pytest.raises(Exception):
+        app.get('/')
+    assert calls == ['fail', 'fail', 'fail']
+
 def test_is_last_attempt_True_when_inactive():
     from pyramid_retry import is_last_attempt
     request = pyramid.request.Request.blank('/')
@@ -97,9 +135,11 @@ def test_retryable_error_predicate_is_bool(config):
     view = lambda r: 'ok'
     with pytest.raises(ConfigurationError):
         config.add_view(view, retryable_error='yes', renderer='string')
+        config.commit()
 
 def test_last_retry_attempt_predicate_is_bool(config):
     from pyramid.exceptions import ConfigurationError
     view = lambda r: 'ok'
     with pytest.raises(ConfigurationError):
         config.add_view(view, last_retry_attempt='yes', renderer='string')
+        config.commit()
