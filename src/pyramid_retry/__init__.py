@@ -1,3 +1,4 @@
+from pyramid.config import PHASE1_CONFIG
 from pyramid.exceptions import ConfigurationError
 from pyramid.httpexceptions import HTTPNotFound
 import sys
@@ -24,32 +25,48 @@ class RetryableException(Exception):
     """ A retryable exception should be raised when an error occurs."""
 
 
-def RetryableExecutionPolicy(attempts=3):
+def RetryableExecutionPolicy(attempts=3, activate_hook=None):
     """
     Create a :term:`execution policy` that catches any
     :term:`retryable error` and sends it through the pipeline again up to
     a maximum of ``attempts`` attempts.
 
+    If ``activate_hook`` is set it will be consulted prior to each request
+    to determine if retries should be enabled. It should return a number > 0
+    of attempts to be used or ``None`` which will indicate to use the default
+    number of attempts.
+
     """
+    assert attempts > 0
+
     def retry_policy(environ, router):
         # make the original request
         request = router.make_request(environ)
+
+        if activate_hook:
+            retry_attempts = activate_hook(request)
+            if retry_attempts is None:
+                retry_attempts = attempts
+            else:
+                assert retry_attempts > 0
+        else:
+            retry_attempts = attempts
 
         # if we are supporting multiple attempts then we must make
         # make the body seekable in order to re-use it across multiple
         # attempts. make_body_seekable will copy wsgi.input if
         # necessary, otherwise it will rewind the copy to position zero
-        if attempts != 1:
+        if retry_attempts != 1:
             request.make_body_seekable()
 
-        for number in range(attempts):
+        for number in range(retry_attempts):
             # track the attempt info in the environ
             # try to set it as soon as possible so that it's available
             # in the request factory and elsewhere if people want it
             # note: set all of these values here as they are cleared after
             # each attempt
             environ['retry.attempt'] = number
-            environ['retry.attempts'] = attempts
+            environ['retry.attempts'] = retry_attempts
 
             # if we are not on the first attempt then we should start
             # with a new request object and throw away any changes to
@@ -209,11 +226,21 @@ def includeme(config):
     """
     settings = config.get_settings()
 
-    attempts = int(settings.get('retry.attempts') or 3)
-    settings['retry.attempts'] = attempts
-
-    policy = RetryableExecutionPolicy(attempts)
-    config.set_execution_policy(policy)
-
     config.add_view_predicate('last_retry_attempt', LastAttemptPredicate)
     config.add_view_predicate('retryable_error', RetryableErrorPredicate)
+
+    def register():
+        attempts = int(settings.get('retry.attempts') or 3)
+        settings['retry.attempts'] = attempts
+
+        activate_hook = settings.get('retry.activate_hook')
+        activate_hook = config.maybe_dotted(activate_hook)
+
+        policy = RetryableExecutionPolicy(
+            attempts,
+            activate_hook=activate_hook,
+        )
+        config.set_execution_policy(policy)
+
+    # defer registration to allow time to modify settings
+    config.action(None, register, order=PHASE1_CONFIG)

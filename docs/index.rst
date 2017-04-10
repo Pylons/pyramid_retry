@@ -120,6 +120,25 @@ interface:
    def view(request):
        response = requests.get('https://www.google.com')
 
+Per-Request Attempts
+--------------------
+
+It may be desirable to override the attempts per-request. For example, if
+one endpoint on the system cannot afford to make a copy of the request via
+``request.make_body_seekable()`` then the activate hook can be used to
+set ``attempts=`` on that endpoint.
+
+.. code-block:: python
+
+    def activate_hook(request):
+        if request.path == '/upload':
+            return 1  # disable retries on this endpoint
+
+    config.add_settings({'retry.activate_hook': activate_hook})
+
+The ``activate_hook`` should return a number ``>= 1`` or ``None``. If ``None``
+then the policy will fallback to the ``retry.attempts`` setting.
+
 View Predicates
 ---------------
 
