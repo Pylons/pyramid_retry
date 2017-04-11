@@ -158,7 +158,7 @@ class RetryableErrorPredicate(object):
     used to determine if an exception view should execute based on whether
     the exception is a :term:`retryable error`.
 
-    .. seealso:: See :func:`pyramid_retry.is_exc_retryable`.
+    .. seealso:: See :func:`pyramid_retry.is_error_retryable`.
 
     """
     def __init__(self, val, config):
