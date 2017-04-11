@@ -146,13 +146,13 @@ When the library is included in your application it registers two new view
 predicates which are especially useful on exception views to determine
 when to handle certain errors.
 
-``is_exc_retryable`` will match the exception view
+``retryable_error=[True/False]`` will match the exception view
 only if the exception is both an :term:`retryable error` **and** there
 are remaining attempts in which the request would be retried. See
-:class:`pyramid_retry.RetryableExceptionPredicate` for more information.
+:class:`pyramid_retry.RetryableErrorPredicate` for more information.
 
-``is_last_attempt`` will match only if, when the view is executed, there
-will not be another attempt for this request.
+``last_retry_attempt=[True/False]`` will match only if, when the view is
+executed, there will not be another attempt for this request.
 See :class:`pyramid_retry.LastAttemptPredicate` for more information.
 
 Caveats
