@@ -1,5 +1,5 @@
-unreleased
-==========
+0.3 (2017-04-10)
+================
 
 - Support a ``retry.activate_hook`` setting which can return a per-request
   number of retries. See https://github.com/Pylons/pyramid_retry/pull/4
