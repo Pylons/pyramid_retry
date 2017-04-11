@@ -5,7 +5,7 @@ pyramid_retry
 .. image:: https://img.shields.io/pypi/v/pyramid_retry.svg
     :target: https://pypi.python.org/pypi/pyramid_retry
 
-.. image:: https://img.shields.io/travis/Pylons/pyramid_retry.svg
+.. image:: https://img.shields.io/travis/Pylons/pyramid_retry/master.svg
     :target: https://travis-ci.org/Pylons/pyramid_retry
 
 .. image:: https://readthedocs.org/projects/pyramid_retry/badge/?version=latest
