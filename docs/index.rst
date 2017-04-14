@@ -6,6 +6,8 @@ pyramid_retry
 can retry them a configurable number of times under certain "retryable" error
 conditions before indicating a failure to the client.
 
+.. warning:: This package will only work with Pyramid 1.9 and newer.
+
 Installation
 ============
 
