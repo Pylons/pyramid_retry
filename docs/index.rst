@@ -60,7 +60,14 @@ Activate ``pyramid_retry`` by including it in your application:
 By default ``pyramid_retry`` will register an instance of
 :func:`pyramid_retry.RetryableExecutionPolicy` as an :term:`execution policy`
 in your application using the ``retry.attempts`` setting as the maximum number
-of attempts per request. The default number of attempts is ``1``.
+of attempts per request. The default number of attempts is ``3``. This number
+is configurable in your application's ``.ini`` file as follows:
+
+.. code-block:: ini
+
+    [app:main]
+    # ...
+    retry.attempts = 3
 
 The policy will handle any requests that fail because the application
 raised an instance of :class:`pyramid_retry.RetryableException` or another
