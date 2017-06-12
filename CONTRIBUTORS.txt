@@ -107,3 +107,5 @@ Contributors
 ------------
 
 - Michael Merickel (2017-03-01)
+
+- Steve Piercy (2017-06-10)
