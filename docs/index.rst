@@ -112,12 +112,12 @@ interface:
 
 .. code-block:: python
 
-   from pyramid_retry import IRetryableError
+   from pyramid_retry import mark_error_retryable
    import requests
    import zope.interface
 
    # mark requests.Timeout errors as retryable
-   zope.interface.classImplements(requests.Timeout, IRetryableError)
+   mark_error_retryable(requests.Timeout)
 
    def view(request):
        response = requests.get('https://www.google.com')

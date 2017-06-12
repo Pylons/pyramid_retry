@@ -1,9 +1,12 @@
+import inspect
 from pyramid.config import PHASE1_CONFIG
 from pyramid.exceptions import ConfigurationError
 from pyramid.httpexceptions import HTTPNotFound
 import sys
 from zope.interface import (
     Interface,
+    alsoProvides,
+    classImplements,
     implementer,
 )
 
@@ -113,6 +116,21 @@ def RetryableExecutionPolicy(attempts=3, activate_hook=None):
                 del environ['retry.attempts']
 
     return retry_policy
+
+
+def mark_error_retryable(error):
+    """
+    Mark an exception instance or type as retryable. If this exception
+    is caught by ``pyramid_retry`` then it may retry the request.
+
+    """
+    if isinstance(error, Exception):
+        alsoProvides(error, IRetryableError)
+    elif inspect.isclass(error) and issubclass(error, Exception):
+        classImplements(error, IRetryableError)
+    else:
+        raise ValueError(
+            'only exception objects or types may be marked retryable')
 
 
 def is_error_retryable(request, exc):
