@@ -2,7 +2,6 @@ import pyramid.request
 import pyramid.testing
 import pytest
 import webtest
-import zope.interface
 
 def test_raising_RetryableException_is_caught(config):
     from pyramid_retry import RetryableException
@@ -21,8 +20,8 @@ def test_raising_RetryableException_is_caught(config):
     assert response.body == b'ok'
     assert calls == ['fail', 'fail', 'ok']
 
-def test_raising_IRetryableError_is_caught(config):
-    from pyramid_retry import IRetryableError
+def test_raising_IRetryableError_instance_is_caught(config):
+    from pyramid_retry import mark_error_retryable
     calls = []
     def final_view(request):
         calls.append('ok')
@@ -30,8 +29,28 @@ def test_raising_IRetryableError_is_caught(config):
     def bad_view(request):
         calls.append('fail')
         ex = Exception()
-        zope.interface.directlyProvides(ex, IRetryableError)
+        mark_error_retryable(ex)
         raise ex
+    config.add_view(bad_view, last_retry_attempt=False)
+    config.add_view(final_view, last_retry_attempt=True, renderer='string')
+    app = config.make_wsgi_app()
+    app = webtest.TestApp(app)
+    response = app.get('/')
+    assert response.body == b'ok'
+    assert calls == ['fail', 'fail', 'ok']
+
+def test_raising_IRetryableError_type_is_caught(config):
+    from pyramid_retry import mark_error_retryable
+    class MyRetryableError(Exception):
+        pass
+    mark_error_retryable(MyRetryableError)
+    calls = []
+    def final_view(request):
+        calls.append('ok')
+        return 'ok'
+    def bad_view(request):
+        calls.append('fail')
+        raise MyRetryableError
     config.add_view(bad_view, last_retry_attempt=False)
     config.add_view(final_view, last_retry_attempt=True, renderer='string')
     app = config.make_wsgi_app()
@@ -143,3 +162,8 @@ def test_last_retry_attempt_predicate_is_bool(config):
     with pytest.raises(ConfigurationError):
         config.add_view(view, last_retry_attempt='yes', renderer='string')
         config.commit()
+
+def test_mark_error_retryable_on_non_error():
+    from pyramid_retry import mark_error_retryable
+    with pytest.raises(ValueError):
+        mark_error_retryable('some string')

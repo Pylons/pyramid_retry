@@ -1,3 +1,7 @@
+- Add the ``mark_error_retryable`` function in order to easily mark
+  certain errors as retryable for ``pyramid_retry`` to detect.
+  See https://github.com/Pylons/pyramid_retry/pull/8
+
 0.3 (2017-04-10)
 ================
 

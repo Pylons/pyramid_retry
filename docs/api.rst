@@ -8,6 +8,8 @@
 
   .. autofunction:: RetryableExecutionPolicy
 
+  .. autofunction:: mark_error_retryable
+
   .. autofunction:: is_error_retryable
 
   .. autofunction:: is_last_attempt
