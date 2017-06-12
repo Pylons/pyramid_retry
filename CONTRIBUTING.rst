@@ -82,13 +82,16 @@ Ready to contribute? Here's how to set up `pyramid_retry` for local development.
 
     $ env/bin/tox
 
-6. Commit your changes and push your branch to GitHub::
+6. Add your name to the ``CONTRIBUTORS.txt`` file in the root of the
+   repository.
+
+7. Commit your changes and push your branch to GitHub::
 
     $ git add .
     $ git commit -m "Your detailed description of your changes."
     $ git push origin name-of-your-bugfix-or-feature
 
-7. Submit a pull request through the GitHub website.
+8. Submit a pull request through the GitHub website.
 
 Pull Request Guidelines
 -----------------------
@@ -99,8 +102,8 @@ Before you submit a pull request, check that it meets these guidelines:
 2. If the pull request adds functionality, the docs should be updated. Put
    your new functionality into a function with a docstring, and add the
    feature to the list in README.rst.
-3. The pull request should work for Python 2.7, 3.4 and 3.5, and for PyPy. Check
-   https://travis-ci.org/Pylons/pyramid_retry/pull_requests
+3. The pull request should work for Python 2.7, 3.4, 3.5 and 3.6, and for PyPy.
+   Check https://travis-ci.org/Pylons/pyramid_retry/pull_requests
    and make sure that the tests pass for all supported Python versions.
 
 Tips
