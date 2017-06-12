@@ -4,6 +4,7 @@ from pyramid.exceptions import ConfigurationError
 from pyramid.httpexceptions import HTTPNotFound
 import sys
 from zope.interface import (
+    Attribute,
     Interface,
     alsoProvides,
     classImplements,
@@ -21,6 +22,37 @@ class IRetryableError(Interface):
     indicate that it should be treated as a :term:`retryable error`.
 
     """
+
+
+class IBeforeRetry(Interface):
+    """
+    An event emitted immediately prior to throwing away the request
+    and creating a new one.
+
+    This event may be useful when state is stored on the ``request.environ``
+    that needs to be updated before a new request is created.
+
+    """
+    environ = Attribute('The environ object that is reused between requests.')
+    request = Attribute('The request object that is being discarded.')
+
+
+@implementer(IBeforeRetry)
+class BeforeRetry(object):
+    """
+    An event emitted immediately prior to throwing away the request
+    and creating a new one.
+
+    This event may be useful when state is stored on the ``request.environ``
+    that needs to be updated before a new request is created.
+
+    :ivar request: The :class:`pyramid.request.Request` object that is being
+                   discarded.
+
+    """
+    def __init__(self, request):
+        self.request = request
+        self.environ = request.environ
 
 
 @implementer(IRetryableError)
@@ -91,6 +123,7 @@ def RetryableExecutionPolicy(attempts=3, activate_hook=None):
                     # if this is a retryable exception then continue to the
                     # next attempt, discarding the current response
                     if is_error_retryable(request, exc):
+                        request.registry.notify(BeforeRetry(request))
                         continue
 
                 return response
@@ -106,6 +139,9 @@ def RetryableExecutionPolicy(attempts=3, activate_hook=None):
                             return request.invoke_exception_view(exc_info)
                         except HTTPNotFound:
                             reraise(*exc_info)
+
+                    else:
+                        request.registry.notify(BeforeRetry(request))
 
                 finally:
                     del exc_info  # avoid leak

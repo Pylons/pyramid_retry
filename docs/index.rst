@@ -164,6 +164,23 @@ are remaining attempts in which the request would be retried. See
 executed, there will not be another attempt for this request.
 See :class:`pyramid_retry.LastAttemptPredicate` for more information.
 
+Receiving Retry Notifications
+-----------------------------
+
+The :class:`pyramid_retry.IBeforeRetry` event can be subscribed to receive
+a callback with the ``request`` and ``environ`` prior to the pipeline
+being completely torn down. This can be very helpful if any state is stored
+on the ``environ`` itself that needs to be reset prior to the retry attempt.
+
+.. code-block:: python
+
+    from pyramid.events import subscriber
+    from pyramid_retry import IBeforeRetry
+
+    @subscriber(IBeforeRetry)
+    def retry_event(event):
+        print('A retry is about to occur.')
+
 Caveats
 =======
 

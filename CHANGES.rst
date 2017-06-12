@@ -2,6 +2,10 @@
   certain errors as retryable for ``pyramid_retry`` to detect.
   See https://github.com/Pylons/pyramid_retry/pull/8
 
+- Add the ``IBeforeRetry`` event that can be subscribed to be notified
+  when a retry is about to occur in order to perform cleanup on the
+  ``environ``. See https://github.com/Pylons/pyramid_retry/pull/9
+
 0.3 (2017-04-10)
 ================
 
