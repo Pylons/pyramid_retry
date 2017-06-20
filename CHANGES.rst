@@ -1,3 +1,10 @@
+0.5 (2017-06-19)
+================
+
+- Update the policy to to track changes in Pyramid 1.9b1. This is an
+  incompatible change and requires at least Pyramid 1.9b1.
+  See https://github.com/Pylons/pyramid_retry/pull/11
+
 0.4 (2017-06-12)
 ================
 
