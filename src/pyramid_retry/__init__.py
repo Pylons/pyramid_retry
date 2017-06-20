@@ -1,8 +1,6 @@
 import inspect
 from pyramid.config import PHASE1_CONFIG
 from pyramid.exceptions import ConfigurationError
-from pyramid.httpexceptions import HTTPNotFound
-import sys
 from zope.interface import (
     Attribute,
     Interface,
@@ -10,8 +8,6 @@ from zope.interface import (
     classImplements,
     implementer,
 )
-
-from .compat import reraise
 
 
 class IRetryableError(Interface):
@@ -76,7 +72,8 @@ def RetryableExecutionPolicy(attempts=3, activate_hook=None):
 
     def retry_policy(environ, router):
         # make the original request
-        request = router.make_request(environ)
+        request_ctx = router.request_context(environ)
+        request = request_ctx.begin()
 
         if activate_hook:
             retry_attempts = activate_hook(request)
@@ -110,7 +107,8 @@ def RetryableExecutionPolicy(attempts=3, activate_hook=None):
             if number > 0:
                 # try to make sure this code stays in sync with pyramid's
                 # router which normally creates requests
-                request = router.make_request(environ)
+                request_ctx = router.request_context(environ)
+                request = request_ctx.begin()
 
             try:
                 response = router.invoke_request(request)
@@ -128,26 +126,20 @@ def RetryableExecutionPolicy(attempts=3, activate_hook=None):
 
                 return response
 
-            except Exception:
-                exc_info = sys.exc_info()
-                try:
-                    # if this was the last attempt or the exception is not
-                    # retryable then make a last ditch effort to render an
-                    # error response before sending the exception up the stack
-                    if not is_error_retryable(request, exc_info[1]):
-                        try:
-                            return request.invoke_exception_view(exc_info)
-                        except HTTPNotFound:
-                            reraise(*exc_info)
+            except Exception as exc:
+                # if this was the last attempt or the exception is not
+                # retryable then make a last ditch effort to render an
+                # error response before sending the exception up the stack
+                if not is_error_retryable(request, exc):
+                    return request.invoke_exception_view(reraise=True)
 
-                    else:
-                        request.registry.notify(BeforeRetry(request))
-
-                finally:
-                    del exc_info  # avoid leak
+                else:
+                    request.registry.notify(BeforeRetry(request))
 
             # cleanup any changes we made to the request
             finally:
+                request_ctx.end()
+
                 del environ['retry.attempt']
                 del environ['retry.attempts']
 

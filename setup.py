@@ -8,7 +8,7 @@ readme = readfile('README.rst')
 changes = readfile('CHANGES.rst')
 
 install_requires = [
-    'pyramid >= 1.9.dev0',
+    'pyramid >= 1.9b1',
     'zope.interface',
 ]
 
