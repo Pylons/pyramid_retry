@@ -8,7 +8,7 @@ readme = readfile('README.rst')
 changes = readfile('CHANGES.rst')
 
 install_requires = [
-    'pyramid >= 1.9.0',
+    'pyramid >= 1.9',
     'zope.interface',
 ]
 
@@ -26,7 +26,7 @@ tests_require = [
 
 setup(
     name='pyramid_retry',
-    version='0.6',
+    version='1.0',
     description=(
         'An execution policy for Pyramid that supports retrying requests '
         'after certain failure exceptions.'
@@ -46,7 +46,7 @@ setup(
     zip_safe=False,
     keywords='pyramid wsgi retry attempt',
     classifiers=[
-        'Development Status :: 4 - Beta',
+        'Development Status :: 5 - Stable',
         'Framework :: Pyramid',
         'Intended Audience :: Developers',
         'License :: OSI Approved :: MIT License',
@@ -57,6 +57,7 @@ setup(
         'Programming Language :: Python :: 3.4',
         'Programming Language :: Python :: 3.5',
         'Programming Language :: Python :: 3.6',
+        'Programming Language :: Python :: 3.7',
         'Programming Language :: Python :: Implementation :: CPython',
         'Programming Language :: Python :: Implementation :: PyPy',
     ],
