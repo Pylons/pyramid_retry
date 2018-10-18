@@ -16,6 +16,6 @@ pyramid_retry
 can retry them a configurable number of times under certain "retryable" error
 conditions before indicating a failure to the client.
 
-See http://docs.pylonsproject.org/projects/pyramid-retry/en/latest/
+See https://docs.pylonsproject.org/projects/pyramid-retry/en/latest/
 or ``docs/index.rst`` in this distribution for detailed
 documentation.

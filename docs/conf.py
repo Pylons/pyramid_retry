@@ -13,6 +13,7 @@
 # All configuration values have a default; values that are commented out
 # serve to show the default.
 
+import datetime
 import sys
 import os
 import pkg_resources
@@ -63,7 +64,8 @@ master_doc = 'index'
 
 # General information about the project.
 project = u'pyramid_retry'
-copyright = u'2017-2018, Michael Merickel'
+thisyear = datetime.datetime.now().year
+copyright = u'2017-%s, Michael Merickel' % thisyear
 
 # The version info for the project you're documenting, acts as replacement
 # for |version| and |release|, also used in various other places throughout
@@ -113,18 +115,21 @@ pygments_style = 'sphinx'
 # documents.
 #keep_warnings = False
 
+# Do not use smart quotes.
+smartquotes = False
+
 
 # -- Options for HTML output -------------------------------------------
 
-# Add and use Pylons theme
+# Add and use Pyramid theme
 sys.path.append(os.path.abspath('_themes'))
 import pylons_sphinx_themes
 html_theme_path = pylons_sphinx_themes.get_html_themes_path()
-html_theme = 'pylons'
+html_theme = 'pyramid'
 
 
 html_theme_options = {
-    'github_url': 'https://github.com/Pylons/pyramid_jinja2'
+    'github_url': 'https://github.com/Pylons/pyramid_retry'
 }
 
 # The name for this set of Sphinx documents.  If None, it defaults to
@@ -159,7 +164,14 @@ html_static_path = ['_static']
 #html_use_smartypants = True
 
 # Custom sidebar templates, maps document names to template names.
-#html_sidebars = {}
+# Control display of sidebars and include ethical ads from RTD
+html_sidebars = {'**': [
+    'localtoc.html',
+    'ethicalads.html',
+    'relations.html',
+    'sourcelink.html',
+    'searchbox.html',
+]}
 
 # Additional templates that should be rendered to pages, maps page names
 # to template names.
@@ -264,8 +276,10 @@ texinfo_documents = [
      u'pyramid_retry Documentation',
      u'Michael Merickel',
      'pyramid_retry',
-     'One line description of project.',
-     'Miscellaneous'),
+     'pyramid_retry is an execution policy for Pyramid that wraps requests and '
+     'can retry them a configurable number of times under certain "retryable" '
+     'error conditions before indicating a failure to the client.',
+     'Web application'),
 ]
 
 # Documents to append as an appendix to all manuals.
