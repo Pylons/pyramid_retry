@@ -1,3 +1,9 @@
+0.6 (unreleased)
+================
+
+- Update the version we require for Pyramid to a non-prerelease so that pip and
+  other tools don't accidentally install pre-release software.
+
 0.5 (2017-06-19)
 ================
 

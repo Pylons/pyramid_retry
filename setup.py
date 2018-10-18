@@ -8,7 +8,7 @@ readme = readfile('README.rst')
 changes = readfile('CHANGES.rst')
 
 install_requires = [
-    'pyramid >= 1.9b1',
+    'pyramid >= 1.9.0',
     'zope.interface',
 ]
 
@@ -26,7 +26,7 @@ tests_require = [
 
 setup(
     name='pyramid_retry',
-    version='0.5',
+    version='0.6',
     description=(
         'An execution policy for Pyramid that supports retrying requests '
         'after certain failure exceptions.'
