@@ -1,8 +1,11 @@
 0.6 (unreleased)
 ================
 
+- Support Python 3.7.
+
 - Update the version we require for Pyramid to a non-prerelease so that pip and
   other tools don't accidentally install pre-release software.
+  See https://github.com/Pylons/pyramid_retry/pull/13
 
 0.5 (2017-06-19)
 ================
