@@ -23,7 +23,7 @@ To install pyramid_retry, run this command in your terminal:
 If you don't have `pip`_ installed, this `Python installation guide`_ can guide
 you through the process.
 
-.. _pip: https://pip.pypa.io
+.. _pip: https://pip.pypa.io/en/stable/
 .. _Python installation guide: http://docs.python-guide.org/en/latest/starting/installation/
 
 
@@ -91,7 +91,7 @@ Of course you probably wouldn't write actual code that expects to fail like
 this. More realistically you may use a library like pyramid_tm_ to translate
 certain transactional errors marked as "transient" into retryable errors.
 
-.. _pyramid_tm: http://docs.pylonsproject.org/projects/pyramid-tm/en/latest/
+.. _pyramid_tm: https://docs.pylonsproject.org/projects/pyramid-tm/en/latest/
 
 Custom Retryable Errors
 -----------------------
