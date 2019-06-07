@@ -128,10 +128,9 @@ def RetryableExecutionPolicy(attempts=3, activate_hook=None):
 
             except Exception as exc:
                 # if this was the last attempt or the exception is not
-                # retryable then make a last ditch effort to render an
-                # error response before sending the exception up the stack
+                # retryable then there's nothing left for us to do
                 if not is_error_retryable(request, exc):
-                    return request.invoke_exception_view(reraise=True)
+                    raise
 
                 else:
                     request.registry.notify(BeforeRetry(request))
