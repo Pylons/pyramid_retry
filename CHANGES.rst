@@ -1,3 +1,11 @@
+2.0 (2019-06-06)
+================
+
+- No longer call ``invoke_exception_view`` if the policy catches an exception.
+  If on the last attempt or non-retryable then the exception will now bubble
+  out of the app and into WSGI middleware.
+  See https://github.com/Pylons/pyramid_retry/pull/17
+
 1.0 (2018-10-18)
 ================
 
