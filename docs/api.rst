@@ -26,3 +26,4 @@
   .. autointerface:: IRetryableError
 
   .. autointerface:: IBeforeRetry
+     :members:
