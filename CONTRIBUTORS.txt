@@ -111,3 +111,5 @@ Contributors
 - Steve Piercy (2017-06-10)
 
 - Bert JW Regeer (2018-10-17)
+
+- Sean Hammond (2019-09-27)

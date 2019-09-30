@@ -31,6 +31,11 @@ class IBeforeRetry(Interface):
     """
     environ = Attribute('The environ object that is reused between requests.')
     request = Attribute('The request object that is being discarded.')
+    exception = Attribute('The exception that request processing raised.')
+    response = Attribute('The response object that is being discarded. '
+                         'This may be ``None`` if no response was generated, '
+                         'which happens when request processing raises an '
+                         "exception that isn't caught by any exception view.")
 
 
 @implementer(IBeforeRetry)
@@ -46,9 +51,11 @@ class BeforeRetry(object):
                    discarded.
 
     """
-    def __init__(self, request):
+    def __init__(self, request, exception, response=None):
         self.request = request
         self.environ = request.environ
+        self.exception = exception
+        self.response = response
 
 
 @implementer(IRetryableError)
@@ -121,7 +128,8 @@ def RetryableExecutionPolicy(attempts=3, activate_hook=None):
                     # if this is a retryable exception then continue to the
                     # next attempt, discarding the current response
                     if is_error_retryable(request, exc):
-                        request.registry.notify(BeforeRetry(request))
+                        request.registry.notify(
+                            BeforeRetry(request, exc, response=response))
                         continue
 
                 return response
@@ -133,7 +141,7 @@ def RetryableExecutionPolicy(attempts=3, activate_hook=None):
                     raise
 
                 else:
-                    request.registry.notify(BeforeRetry(request))
+                    request.registry.notify(BeforeRetry(request, exc))
 
             # cleanup any changes we made to the request
             finally:

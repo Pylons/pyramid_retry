@@ -1,4 +1,5 @@
 import pyramid.request
+import pyramid.response
 import pyramid.testing
 import pytest
 import webtest
@@ -114,6 +115,9 @@ def test_BeforeRetry_event_is_raised(config):
     from pyramid_retry import IBeforeRetry
     calls = []
     retries = []
+    first_exception = RetryableException()
+    second_exception = RetryableException()
+    exceptions_to_be_raised = [first_exception, second_exception]
     def retry_subscriber(event):
         retries.append(event)
     def final_view(request):
@@ -121,7 +125,7 @@ def test_BeforeRetry_event_is_raised(config):
         return 'ok'
     def bad_view(request):
         calls.append('fail')
-        raise RetryableException
+        raise exceptions_to_be_raised.pop(0)
     config.add_subscriber(retry_subscriber, IBeforeRetry)
     config.add_view(bad_view, last_retry_attempt=False)
     config.add_view(final_view, last_retry_attempt=True, renderer='string')
@@ -131,6 +135,10 @@ def test_BeforeRetry_event_is_raised(config):
     assert response.body == b'ok'
     assert calls == ['fail', 'fail', 'ok']
     assert len(retries) == 2
+    assert retries[0].exception == first_exception
+    assert retries[0].response is None
+    assert retries[1].exception == second_exception
+    assert retries[1].response is None
 
 
 def test_BeforeRetry_event_is_raised_from_squashed_exception(config):
@@ -138,13 +146,16 @@ def test_BeforeRetry_event_is_raised_from_squashed_exception(config):
     from pyramid_retry import RetryableException
     calls = []
     retries = []
+    first_exception = RetryableException()
+    second_exception = RetryableException()
+    exceptions_to_be_raised = [first_exception, second_exception]
     def retry_subscriber(event):
         retries.append(event)
     def final_view(request):
         calls.append('ok')
         return 'ok'
     def bad_view(request):
-        raise RetryableException
+        raise exceptions_to_be_raised.pop(0)
     def exc_view(request):
         calls.append('squash')
         return 'squash'
@@ -159,6 +170,10 @@ def test_BeforeRetry_event_is_raised_from_squashed_exception(config):
     assert response.body == b'ok'
     assert calls == ['squash', 'squash', 'ok']
     assert len(retries) == 2
+    assert retries[0].exception == first_exception
+    assert isinstance(retries[0].response, pyramid.response.Response)
+    assert retries[1].exception == second_exception
+    assert isinstance(retries[1].response, pyramid.response.Response)
 
 
 def test_activate_hook_overrides_default_attempts(config):
