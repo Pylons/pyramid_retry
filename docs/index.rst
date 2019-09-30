@@ -179,7 +179,11 @@ on the ``environ`` itself that needs to be reset prior to the retry attempt.
 
     @subscriber(IBeforeRetry)
     def retry_event(event):
-        print('A retry is about to occur.')
+        print(f'A retry is about to occur due to {event.exception}.')
+
+The ``exception`` attribute indicates the exception that triggered the retry.
+The exception may come from either ``request.exception`` if it was caught and
+a response was rendered, or it may come from an uncaught exception.
 
 Caveats
 =======

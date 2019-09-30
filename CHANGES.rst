@@ -1,3 +1,10 @@
+unreleased
+==========
+
+- Add ``exception`` and ``response`` attributes to the
+  ``pyramid_retry.IBeforeRetry`` event.
+  See https://github.com/Pylons/pyramid_retry/pull/19
+
 2.0 (2019-06-06)
 ================
 
