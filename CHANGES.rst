@@ -1,5 +1,5 @@
-unreleased
-==========
+2.1 (2019-09-30)
+================
 
 - Add ``exception`` and ``response`` attributes to the
   ``pyramid_retry.IBeforeRetry`` event.

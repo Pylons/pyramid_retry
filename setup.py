@@ -26,7 +26,7 @@ tests_require = [
 
 setup(
     name='pyramid_retry',
-    version='2.0',
+    version='2.1',
     description=(
         'An execution policy for Pyramid that supports retrying requests '
         'after certain failure exceptions.'
