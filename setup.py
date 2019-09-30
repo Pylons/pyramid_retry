@@ -1,8 +1,10 @@
 from setuptools import setup, find_packages
 
+
 def readfile(name):
     with open(name) as f:
         return f.read()
+
 
 readme = readfile('README.rst')
 changes = readfile('CHANGES.rst')
