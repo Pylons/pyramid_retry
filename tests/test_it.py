@@ -241,6 +241,33 @@ def test_request_make_body_seekable_cleans_up_on_exception(config):
     assert not calls
 
 
+def test_activate_hook_cleans_up_on_exception(config):
+    from pyramid_retry import RetryableException
+    from pyramid.threadlocal import manager
+    # Clear defaults.
+    manager.pop()
+    calls = []
+    def activate_hook(request):
+        raise Exception
+    def bad_view(request):
+        calls.append('fail')
+        raise RetryableException
+    config.add_settings({
+        'retry.attempts': 3,
+        'retry.activate_hook': activate_hook,
+    })
+    config.add_view(bad_view)
+    app = config.make_wsgi_app()
+    app = webtest.TestApp(app)
+    with pytest.raises(Exception):
+        app.get('/')
+    # len(manager.stack) == 1 when you don't catch exception
+    # from activate_hook and clean up.
+    assert len(manager.stack) == 0
+    # Request never invoked because of exception.
+    assert not calls
+
+
 def test_is_last_attempt_True_when_inactive():
     from pyramid_retry import is_last_attempt
     request = pyramid.request.Request.blank('/')

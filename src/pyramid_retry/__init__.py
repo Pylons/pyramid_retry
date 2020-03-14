@@ -81,29 +81,28 @@ def RetryableExecutionPolicy(attempts=3, activate_hook=None):
         # make the original request
         request_ctx = router.request_context(environ)
         request = request_ctx.begin()
-
-        if activate_hook:
-            retry_attempts = activate_hook(request)
-            if retry_attempts is None:
-                retry_attempts = attempts
+        try:
+            if activate_hook:
+                retry_attempts = activate_hook(request)
+                if retry_attempts is None:
+                    retry_attempts = attempts
+                else:
+                    assert retry_attempts > 0
             else:
-                assert retry_attempts > 0
-        else:
-            retry_attempts = attempts
+                retry_attempts = attempts
 
-        # if we are supporting multiple attempts then we must make
-        # make the body seekable in order to re-use it across multiple
-        # attempts. make_body_seekable will copy wsgi.input if
-        # necessary, otherwise it will rewind the copy to position zero
-        if retry_attempts != 1:
-            try:
+            # if we are supporting multiple attempts then we must make
+            # make the body seekable in order to re-use it across multiple
+            # attempts. make_body_seekable will copy wsgi.input if
+            # necessary, otherwise it will rewind the copy to position zero
+            if retry_attempts != 1:
                 request.make_body_seekable()
-            # Catch read errors (e.g. 408 - HTTPRequestTimeout)
-            # and clean up. Could be more specific here but probably
-            # want to clean up on any exception.
-            except Exception:
-                request_ctx.end()
-                raise
+
+        # Catch make_body_seekable (e.g. 408 RequestTimeout)
+        # and activate_hook exceptions and clean up.
+        except Exception:
+            request_ctx.end()
+            raise
 
         for number in range(retry_attempts):
             # track the attempt info in the environ
