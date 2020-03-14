@@ -96,7 +96,14 @@ def RetryableExecutionPolicy(attempts=3, activate_hook=None):
         # attempts. make_body_seekable will copy wsgi.input if
         # necessary, otherwise it will rewind the copy to position zero
         if retry_attempts != 1:
-            request.make_body_seekable()
+            try:
+                request.make_body_seekable()
+            # Catch read errors (e.g. 408 - HTTPRequestTimeout)
+            # and clean up. Could be more specific here but probably
+            # want to clean up on any exception.
+            except Exception:
+                request_ctx.end()
+                raise
 
         for number in range(retry_attempts):
             # track the attempt info in the environ

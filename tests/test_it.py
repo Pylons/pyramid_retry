@@ -216,6 +216,31 @@ def test_activate_hook_falls_back_to_default_attempts(config):
     assert calls == ['fail', 'fail', 'fail']
 
 
+def test_request_make_body_seekable_cleans_up_on_exception(config):
+    from pyramid.threadlocal import manager
+    # Clear defaults.
+    manager.pop()
+    calls = []
+    def ok_view(request):
+        calls.append('ok')
+        return 'ok'
+    config.add_view(ok_view, renderer='string')
+    app = config.make_wsgi_app()
+    app = webtest.TestApp(app)
+    with pytest.raises(Exception):
+        # Content-length=1 and empty body causes
+        # webob.request.DisconnectionError:
+        # The client disconnected while sending the body
+        # (1 more bytes were expected) when you call
+        # request.make_body_seekable().
+        app.get('/', headers={'Content-Length': '1'})
+    # len(manager.stack) == 1 when you don't catch exception
+    # from request.make_body_seekable() and clean up.
+    assert len(manager.stack) == 0
+    # Request never invoked because of exception.
+    assert not calls
+
+
 def test_is_last_attempt_True_when_inactive():
     from pyramid_retry import is_last_attempt
     request = pyramid.request.Request.blank('/')
