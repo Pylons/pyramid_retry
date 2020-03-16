@@ -267,6 +267,32 @@ def test_activate_hook_cleans_up_on_exception(config):
     # Request never invoked because of exception.
     assert not calls
 
+def test_activate_hook_cleans_up_on_generator_exit(config):
+    from pyramid_retry import RetryableException
+    from pyramid.threadlocal import manager
+    # Clear defaults.
+    manager.pop()
+    calls = []
+    def activate_hook(request):
+        raise GeneratorExit
+    def bad_view(request):
+        calls.append('fail')
+        raise RetryableException
+    config.add_settings({
+        'retry.attempts': 3,
+        'retry.activate_hook': activate_hook,
+    })
+    config.add_view(bad_view)
+    app = config.make_wsgi_app()
+    app = webtest.TestApp(app)
+    with pytest.raises(GeneratorExit):
+        app.get('/')
+    # len(manager.stack) == 1 when you don't catch GeneratorExit
+    # from activate_hook and clean up.
+    assert len(manager.stack) == 0
+    # Request never invoked because of exception.
+    assert not calls
+
 
 def test_is_last_attempt_True_when_inactive():
     from pyramid_retry import is_last_attempt

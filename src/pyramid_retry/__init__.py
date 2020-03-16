@@ -99,8 +99,9 @@ def RetryableExecutionPolicy(attempts=3, activate_hook=None):
                 request.make_body_seekable()
 
         # Catch make_body_seekable (e.g. 408 RequestTimeout)
-        # and activate_hook exceptions and clean up.
-        except Exception:
+        # and activate_hook exceptions and clean up. Use BaseException
+        # here to catch e.g. GeneratorExit.
+        except BaseException:
             request_ctx.end()
             raise
 
