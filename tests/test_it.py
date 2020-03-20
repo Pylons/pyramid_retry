@@ -216,15 +216,11 @@ def test_activate_hook_falls_back_to_default_attempts(config):
     assert calls == ['fail', 'fail', 'fail']
 
 
-def test_request_make_body_seekable_cleans_up_on_exception(config):
+def test_request_make_body_seekable_cleans_up_threadmanger_on_exception(config):
     from pyramid.threadlocal import manager
     # Clear defaults.
     manager.pop()
-    calls = []
-    def ok_view(request):
-        calls.append('ok')
-        return 'ok'
-    config.add_view(ok_view, renderer='string')
+    assert len(manager.stack) == 0
     app = config.make_wsgi_app()
     app = webtest.TestApp(app)
     with pytest.raises(Exception):
@@ -237,26 +233,19 @@ def test_request_make_body_seekable_cleans_up_on_exception(config):
     # len(manager.stack) == 1 when you don't catch exception
     # from request.make_body_seekable() and clean up.
     assert len(manager.stack) == 0
-    # Request never invoked because of exception.
-    assert not calls
 
 
-def test_activate_hook_cleans_up_on_exception(config):
-    from pyramid_retry import RetryableException
+def test_activate_hook_cleans_up_threadmanager_on_exception(config):
     from pyramid.threadlocal import manager
     # Clear defaults.
     manager.pop()
-    calls = []
+    assert len(manager.stack) == 0
     def activate_hook(request):
         raise Exception
-    def bad_view(request):
-        calls.append('fail')
-        raise RetryableException
     config.add_settings({
         'retry.attempts': 3,
         'retry.activate_hook': activate_hook,
     })
-    config.add_view(bad_view)
     app = config.make_wsgi_app()
     app = webtest.TestApp(app)
     with pytest.raises(Exception):
@@ -264,25 +253,19 @@ def test_activate_hook_cleans_up_on_exception(config):
     # len(manager.stack) == 1 when you don't catch exception
     # from activate_hook and clean up.
     assert len(manager.stack) == 0
-    # Request never invoked because of exception.
-    assert not calls
 
-def test_activate_hook_cleans_up_on_generator_exit(config):
-    from pyramid_retry import RetryableException
+
+def test_activate_hook_cleans_up_threadmanager_on_generator_exit(config):
     from pyramid.threadlocal import manager
     # Clear defaults.
     manager.pop()
-    calls = []
+    assert len(manager.stack) == 0
     def activate_hook(request):
         raise GeneratorExit
-    def bad_view(request):
-        calls.append('fail')
-        raise RetryableException
     config.add_settings({
         'retry.attempts': 3,
         'retry.activate_hook': activate_hook,
     })
-    config.add_view(bad_view)
     app = config.make_wsgi_app()
     app = webtest.TestApp(app)
     with pytest.raises(GeneratorExit):
@@ -290,8 +273,6 @@ def test_activate_hook_cleans_up_on_generator_exit(config):
     # len(manager.stack) == 1 when you don't catch GeneratorExit
     # from activate_hook and clean up.
     assert len(manager.stack) == 0
-    # Request never invoked because of exception.
-    assert not calls
 
 
 def test_is_last_attempt_True_when_inactive():
