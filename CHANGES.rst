@@ -1,3 +1,10 @@
+2.1.1 (2020-03-21)
+==================
+
+- Ensure the threadlocals are properly popped if the ``activate_hook`` throws
+  an error or the request body fails to read due to a client disconnect.
+  See https://github.com/Pylons/pyramid_retry/pull/20
+
 2.1 (2019-09-30)
 ================
 
