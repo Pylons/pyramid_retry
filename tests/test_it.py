@@ -216,6 +216,65 @@ def test_activate_hook_falls_back_to_default_attempts(config):
     assert calls == ['fail', 'fail', 'fail']
 
 
+def test_request_make_body_seekable_cleans_up_threadmanger_on_exception(config):
+    from pyramid.threadlocal import manager
+    # Clear defaults.
+    manager.pop()
+    assert len(manager.stack) == 0
+    app = config.make_wsgi_app()
+    app = webtest.TestApp(app)
+    with pytest.raises(Exception):
+        # Content-length=1 and empty body causes
+        # webob.request.DisconnectionError:
+        # The client disconnected while sending the body
+        # (1 more bytes were expected) when you call
+        # request.make_body_seekable().
+        app.get('/', headers={'Content-Length': '1'})
+    # len(manager.stack) == 1 when you don't catch exception
+    # from request.make_body_seekable() and clean up.
+    assert len(manager.stack) == 0
+
+
+def test_activate_hook_cleans_up_threadmanager_on_exception(config):
+    from pyramid.threadlocal import manager
+    # Clear defaults.
+    manager.pop()
+    assert len(manager.stack) == 0
+    def activate_hook(request):
+        raise Exception
+    config.add_settings({
+        'retry.attempts': 3,
+        'retry.activate_hook': activate_hook,
+    })
+    app = config.make_wsgi_app()
+    app = webtest.TestApp(app)
+    with pytest.raises(Exception):
+        app.get('/')
+    # len(manager.stack) == 1 when you don't catch exception
+    # from activate_hook and clean up.
+    assert len(manager.stack) == 0
+
+
+def test_activate_hook_cleans_up_threadmanager_on_generator_exit(config):
+    from pyramid.threadlocal import manager
+    # Clear defaults.
+    manager.pop()
+    assert len(manager.stack) == 0
+    def activate_hook(request):
+        raise GeneratorExit
+    config.add_settings({
+        'retry.attempts': 3,
+        'retry.activate_hook': activate_hook,
+    })
+    app = config.make_wsgi_app()
+    app = webtest.TestApp(app)
+    with pytest.raises(GeneratorExit):
+        app.get('/')
+    # len(manager.stack) == 1 when you don't catch GeneratorExit
+    # from activate_hook and clean up.
+    assert len(manager.stack) == 0
+
+
 def test_is_last_attempt_True_when_inactive():
     from pyramid_retry import is_last_attempt
     request = pyramid.request.Request.blank('/')
