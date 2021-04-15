@@ -1,7 +1,7 @@
 import pyramid.testing
 import pytest
 
-@pytest.yield_fixture
+@pytest.fixture
 def config():
     config = pyramid.testing.setUp(
         settings={'retry.attempts': 3},
