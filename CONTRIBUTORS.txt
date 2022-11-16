@@ -117,3 +117,5 @@ Contributors
 - Keenan Graham (2020-03-20)
 
 - Jon Betts (2021-04-15)
+
+- Jonathan Vanasco (2022-11-15)
