@@ -35,7 +35,9 @@ matrix:
     - python: '3.6'
       env: TOXENV=lint
 
-install: pip install tox
+install:
+  -  pip install tox
+  -  pip install --upgrade importlib-metadata
 
 script: tox
 
