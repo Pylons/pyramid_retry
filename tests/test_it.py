@@ -351,7 +351,9 @@ def test_is_last_attempt_True_when_inactive():
 def test_retryable_error_predicate_is_bool(config):
     from pyramid.exceptions import ConfigurationError
 
-    view = lambda r: 'ok'
+    def view(_):
+        return 'ok'
+
     with pytest.raises(ConfigurationError):
         config.add_view(view, retryable_error='yes', renderer='string')
         config.commit()
@@ -360,7 +362,9 @@ def test_retryable_error_predicate_is_bool(config):
 def test_last_retry_attempt_predicate_is_bool(config):
     from pyramid.exceptions import ConfigurationError
 
-    view = lambda r: 'ok'
+    def view(_):
+        return 'ok'
+
     with pytest.raises(ConfigurationError):
         config.add_view(view, last_retry_attempt='yes', renderer='string')
         config.commit()
