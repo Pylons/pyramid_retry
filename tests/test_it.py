@@ -4,15 +4,20 @@ import pyramid.testing
 import pytest
 import webtest
 
+
 def test_raising_RetryableException_is_caught(config):
     from pyramid_retry import RetryableException
+
     calls = []
+
     def final_view(request):
         calls.append('ok')
         return 'ok'
+
     def bad_view(request):
         calls.append('fail')
         raise RetryableException
+
     config.add_view(bad_view, last_retry_attempt=False)
     config.add_view(final_view, last_retry_attempt=True, renderer='string')
     app = config.make_wsgi_app()
@@ -21,17 +26,22 @@ def test_raising_RetryableException_is_caught(config):
     assert response.body == b'ok'
     assert calls == ['fail', 'fail', 'ok']
 
+
 def test_raising_IRetryableError_instance_is_caught(config):
     from pyramid_retry import mark_error_retryable
+
     calls = []
+
     def final_view(request):
         calls.append('ok')
         return 'ok'
+
     def bad_view(request):
         calls.append('fail')
         ex = Exception()
         mark_error_retryable(ex)
         raise ex
+
     config.add_view(bad_view, last_retry_attempt=False)
     config.add_view(final_view, last_retry_attempt=True, renderer='string')
     app = config.make_wsgi_app()
@@ -39,19 +49,25 @@ def test_raising_IRetryableError_instance_is_caught(config):
     response = app.get('/')
     assert response.body == b'ok'
     assert calls == ['fail', 'fail', 'ok']
+
 
 def test_raising_IRetryableError_type_is_caught(config):
     from pyramid_retry import mark_error_retryable
+
     class MyRetryableError(Exception):
         pass
+
     mark_error_retryable(MyRetryableError)
     calls = []
+
     def final_view(request):
         calls.append('ok')
         return 'ok'
+
     def bad_view(request):
         calls.append('fail')
         raise MyRetryableError
+
     config.add_view(bad_view, last_retry_attempt=False)
     config.add_view(final_view, last_retry_attempt=True, renderer='string')
     app = config.make_wsgi_app()
@@ -60,11 +76,14 @@ def test_raising_IRetryableError_type_is_caught(config):
     assert response.body == b'ok'
     assert calls == ['fail', 'fail', 'ok']
 
+
 def test_raising_nonretryable_is_not_caught(config):
     calls = []
+
     def bad_view(request):
         calls.append('fail')
         raise Exception
+
     config.add_view(bad_view)
     app = config.make_wsgi_app()
     app = webtest.TestApp(app)
@@ -75,20 +94,26 @@ def test_raising_nonretryable_is_not_caught(config):
 
 def test_handled_error_is_retried(config):
     from pyramid_retry import RetryableException
+
     calls = []
+
     def bad_view(request):
         calls.append('fail')
         raise RetryableException
+
     def retryable_exc_view(request):
         calls.append('caught')
         return 'caught'
+
     def default_exc_view(request):
         calls.append('default')
         return 'default'
+
     config.add_view(bad_view)
     config.add_exception_view(default_exc_view, renderer='string')
     config.add_exception_view(
-        retryable_exc_view, retryable_error=True, renderer='string')
+        retryable_exc_view, retryable_error=True, renderer='string'
+    )
     app = config.make_wsgi_app()
     app = webtest.TestApp(app)
     response = app.get('/')
@@ -98,10 +123,13 @@ def test_handled_error_is_retried(config):
 
 def test_retryable_exception_is_ignored_on_last_attempt(config):
     from pyramid_retry import RetryableException
+
     calls = []
+
     def bad_view(request):
         calls.append('fail')
         raise RetryableException
+
     config.add_view(bad_view)
     app = config.make_wsgi_app()
     app = webtest.TestApp(app)
@@ -111,21 +139,25 @@ def test_retryable_exception_is_ignored_on_last_attempt(config):
 
 
 def test_BeforeRetry_event_is_raised(config):
-    from pyramid_retry import RetryableException
-    from pyramid_retry import IBeforeRetry
+    from pyramid_retry import IBeforeRetry, RetryableException
+
     calls = []
     retries = []
     first_exception = RetryableException()
     second_exception = RetryableException()
     exceptions_to_be_raised = [first_exception, second_exception]
+
     def retry_subscriber(event):
         retries.append(event)
+
     def final_view(request):
         calls.append('ok')
         return 'ok'
+
     def bad_view(request):
         calls.append('fail')
         raise exceptions_to_be_raised.pop(0)
+
     config.add_subscriber(retry_subscriber, IBeforeRetry)
     config.add_view(bad_view, last_retry_attempt=False)
     config.add_view(final_view, last_retry_attempt=True, renderer='string')
@@ -142,27 +174,36 @@ def test_BeforeRetry_event_is_raised(config):
 
 
 def test_BeforeRetry_event_is_raised_from_squashed_exception(config):
-    from pyramid_retry import IBeforeRetry
-    from pyramid_retry import RetryableException
+    from pyramid_retry import IBeforeRetry, RetryableException
+
     calls = []
     retries = []
     first_exception = RetryableException()
     second_exception = RetryableException()
     exceptions_to_be_raised = [first_exception, second_exception]
+
     def retry_subscriber(event):
         retries.append(event)
+
     def final_view(request):
         calls.append('ok')
         return 'ok'
+
     def bad_view(request):
         raise exceptions_to_be_raised.pop(0)
+
     def exc_view(request):
         calls.append('squash')
         return 'squash'
+
     config.add_subscriber(retry_subscriber, IBeforeRetry)
     config.add_view(bad_view, last_retry_attempt=False)
-    config.add_view(exc_view, context=RetryableException, exception_only=True,
-                    renderer='string')
+    config.add_view(
+        exc_view,
+        context=RetryableException,
+        exception_only=True,
+        renderer='string',
+    )
     config.add_view(final_view, last_retry_attempt=True, renderer='string')
     app = config.make_wsgi_app()
     app = webtest.TestApp(app)
@@ -178,16 +219,22 @@ def test_BeforeRetry_event_is_raised_from_squashed_exception(config):
 
 def test_activate_hook_overrides_default_attempts(config):
     from pyramid_retry import RetryableException
+
     calls = []
+
     def activate_hook(request):
         return 1
+
     def bad_view(request):
         calls.append('fail')
         raise RetryableException
-    config.add_settings({
-        'retry.attempts': 3,
-        'retry.activate_hook': activate_hook,
-    })
+
+    config.add_settings(
+        {
+            'retry.attempts': 3,
+            'retry.activate_hook': activate_hook,
+        }
+    )
     config.add_view(bad_view)
     app = config.make_wsgi_app()
     app = webtest.TestApp(app)
@@ -198,16 +245,22 @@ def test_activate_hook_overrides_default_attempts(config):
 
 def test_activate_hook_falls_back_to_default_attempts(config):
     from pyramid_retry import RetryableException
+
     calls = []
+
     def activate_hook(request):
         return None
+
     def bad_view(request):
         calls.append('fail')
         raise RetryableException
-    config.add_settings({
-        'retry.attempts': 3,
-        'retry.activate_hook': activate_hook,
-    })
+
+    config.add_settings(
+        {
+            'retry.attempts': 3,
+            'retry.activate_hook': activate_hook,
+        }
+    )
     config.add_view(bad_view)
     app = config.make_wsgi_app()
     app = webtest.TestApp(app)
@@ -216,8 +269,11 @@ def test_activate_hook_falls_back_to_default_attempts(config):
     assert calls == ['fail', 'fail', 'fail']
 
 
-def test_request_make_body_seekable_cleans_up_threadmanger_on_exception(config):
+def test_request_make_body_seekable_cleans_up_threadmanger_on_exception(
+    config,
+):
     from pyramid.threadlocal import manager
+
     # Clear defaults.
     manager.pop()
     assert len(manager.stack) == 0
@@ -237,15 +293,20 @@ def test_request_make_body_seekable_cleans_up_threadmanger_on_exception(config):
 
 def test_activate_hook_cleans_up_threadmanager_on_exception(config):
     from pyramid.threadlocal import manager
+
     # Clear defaults.
     manager.pop()
     assert len(manager.stack) == 0
+
     def activate_hook(request):
         raise Exception
-    config.add_settings({
-        'retry.attempts': 3,
-        'retry.activate_hook': activate_hook,
-    })
+
+    config.add_settings(
+        {
+            'retry.attempts': 3,
+            'retry.activate_hook': activate_hook,
+        }
+    )
     app = config.make_wsgi_app()
     app = webtest.TestApp(app)
     with pytest.raises(Exception):
@@ -257,15 +318,20 @@ def test_activate_hook_cleans_up_threadmanager_on_exception(config):
 
 def test_activate_hook_cleans_up_threadmanager_on_generator_exit(config):
     from pyramid.threadlocal import manager
+
     # Clear defaults.
     manager.pop()
     assert len(manager.stack) == 0
+
     def activate_hook(request):
         raise GeneratorExit
-    config.add_settings({
-        'retry.attempts': 3,
-        'retry.activate_hook': activate_hook,
-    })
+
+    config.add_settings(
+        {
+            'retry.attempts': 3,
+            'retry.activate_hook': activate_hook,
+        }
+    )
     app = config.make_wsgi_app()
     app = webtest.TestApp(app)
     with pytest.raises(GeneratorExit):
@@ -277,12 +343,14 @@ def test_activate_hook_cleans_up_threadmanager_on_generator_exit(config):
 
 def test_is_last_attempt_True_when_inactive():
     from pyramid_retry import is_last_attempt
+
     request = pyramid.request.Request.blank('/')
     assert is_last_attempt(request)
 
 
 def test_retryable_error_predicate_is_bool(config):
     from pyramid.exceptions import ConfigurationError
+
     view = lambda r: 'ok'
     with pytest.raises(ConfigurationError):
         config.add_view(view, retryable_error='yes', renderer='string')
@@ -291,12 +359,15 @@ def test_retryable_error_predicate_is_bool(config):
 
 def test_last_retry_attempt_predicate_is_bool(config):
     from pyramid.exceptions import ConfigurationError
+
     view = lambda r: 'ok'
     with pytest.raises(ConfigurationError):
         config.add_view(view, last_retry_attempt='yes', renderer='string')
         config.commit()
 
+
 def test_mark_error_retryable_on_non_error():
     from pyramid_retry import mark_error_retryable
+
     with pytest.raises(ValueError):
         mark_error_retryable('some string')

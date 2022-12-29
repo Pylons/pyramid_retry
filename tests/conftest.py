@@ -1,6 +1,7 @@
 import pyramid.testing
 import pytest
 
+
 @pytest.fixture
 def config():
     config = pyramid.testing.setUp(
