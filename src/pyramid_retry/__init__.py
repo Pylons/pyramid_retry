@@ -29,13 +29,16 @@ class IBeforeRetry(Interface):
     that needs to be updated before a new request is created.
 
     """
+
     environ = Attribute('The environ object that is reused between requests.')
     request = Attribute('The request object that is being discarded.')
     exception = Attribute('The exception that request processing raised.')
-    response = Attribute('The response object that is being discarded. '
-                         'This may be ``None`` if no response was generated, '
-                         'which happens when request processing raises an '
-                         "exception that isn't caught by any exception view.")
+    response = Attribute(
+        'The response object that is being discarded. '
+        'This may be ``None`` if no response was generated, '
+        'which happens when request processing raises an '
+        "exception that isn't caught by any exception view."
+    )
 
 
 @implementer(IBeforeRetry)
@@ -51,6 +54,7 @@ class BeforeRetry(object):
                    discarded.
 
     """
+
     def __init__(self, request, exception, response=None):
         self.request = request
         self.environ = request.environ
@@ -60,7 +64,7 @@ class BeforeRetry(object):
 
 @implementer(IRetryableError)
 class RetryableException(Exception):
-    """ A retryable exception should be raised when an error occurs."""
+    """A retryable exception should be raised when an error occurs."""
 
 
 def RetryableExecutionPolicy(attempts=3, activate_hook=None):
@@ -135,7 +139,8 @@ def RetryableExecutionPolicy(attempts=3, activate_hook=None):
                     # next attempt, discarding the current response
                     if is_error_retryable(request, exc):
                         request.registry.notify(
-                            BeforeRetry(request, exc, response=response))
+                            BeforeRetry(request, exc, response=response)
+                        )
                         continue
 
                 return response
@@ -171,7 +176,8 @@ def mark_error_retryable(error):
         classImplements(error, IRetryableError)
     else:
         raise ValueError(
-            'only exception objects or types may be marked retryable')
+            'only exception objects or types may be marked retryable'
+        )
 
 
 def is_error_retryable(request, exc):
@@ -186,9 +192,8 @@ def is_error_retryable(request, exc):
     if is_last_attempt(request):
         return False
 
-    return (
-        isinstance(exc, RetryableException)
-        or IRetryableError.providedBy(exc)
+    return isinstance(exc, RetryableException) or IRetryableError.providedBy(
+        exc
     )
 
 
@@ -220,6 +225,7 @@ class RetryableErrorPredicate(object):
     .. seealso:: See :func:`pyramid_retry.is_error_retryable`.
 
     """
+
     def __init__(self, val, config):
         if not isinstance(val, bool):
             raise ConfigurationError(
@@ -236,9 +242,8 @@ class RetryableErrorPredicate(object):
     def __call__(self, context, request):
         exc = getattr(request, 'exception', None)
         is_retryable = is_error_retryable(request, exc)
-        return (
-            (self.val and is_retryable)
-            or (not self.val and not is_retryable)
+        return (self.val and is_retryable) or (
+            not self.val and not is_retryable
         )
 
 
@@ -251,6 +256,7 @@ class LastAttemptPredicate(object):
     .. seealso:: See :func:`pyramid_retry.is_last_attempt`.
 
     """
+
     def __init__(self, val, config):
         if not isinstance(val, bool):
             raise ConfigurationError(
@@ -266,7 +272,7 @@ class LastAttemptPredicate(object):
 
     def __call__(self, context, request):
         is_last = is_last_attempt(request)
-        return ((self.val and is_last) or (not self.val and not is_last))
+        return (self.val and is_last) or (not self.val and not is_last)
 
 
 def includeme(config):

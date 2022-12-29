@@ -5,8 +5,8 @@ pyramid_retry
 .. image:: https://img.shields.io/pypi/v/pyramid_retry.svg
     :target: https://pypi.python.org/pypi/pyramid_retry
 
-.. image:: https://img.shields.io/travis/Pylons/pyramid_retry/master.svg
-    :target: https://travis-ci.org/Pylons/pyramid_retry
+.. image:: https://github.com/Pylons/hupper/actions/workflows/ci-tests.yml/badge.svg?branch=main
+    :target: https://github.com/Pylons/hupper/actions/workflows/ci-tests.yml?query=branch%3Amain
 
 .. image:: https://readthedocs.org/projects/pyramid_retry/badge/?version=latest
     :target: https://readthedocs.org/projects/pyramid_retry/?badge=latest
