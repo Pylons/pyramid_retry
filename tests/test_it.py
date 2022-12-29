@@ -351,7 +351,7 @@ def test_is_last_attempt_True_when_inactive():
 def test_retryable_error_predicate_is_bool(config):
     from pyramid.exceptions import ConfigurationError
 
-    def view(_):
+    def view(_):  # pragma: no cover
         return 'ok'
 
     with pytest.raises(ConfigurationError):
@@ -362,7 +362,7 @@ def test_retryable_error_predicate_is_bool(config):
 def test_last_retry_attempt_predicate_is_bool(config):
     from pyramid.exceptions import ConfigurationError
 
-    def view(_):
+    def view(_):  # pragma: no cover
         return 'ok'
 
     with pytest.raises(ConfigurationError):
