@@ -31,3 +31,23 @@ no_lines_before = "THIRDPARTY"
 sections = "FUTURE,THIRDPARTY,FIRSTPARTY,LOCALFOLDER"
 default_section = "THIRDPARTY"
 known_first_party = "pyramid_retry"
+
+[tool.mypy]
+check_untyped_defs = true
+disallow_any_generics = true
+disallow_incomplete_defs = true
+disallow_subclassing_any = true
+disallow_untyped_calls = true
+disallow_untyped_decorators = true
+disallow_untyped_defs = true
+no_implicit_reexport = true
+warn_redundant_casts = true
+warn_return_any = true
+warn_unused_configs = true
+warn_unused_ignores = true
+plugins = ["mypy_zope:plugin"]
+
+[[tool.mypy.overrides]]
+# https://github.com/Pylons/pyramid/issues/2638
+module = "pyramid.*"
+ignore_missing_imports = true

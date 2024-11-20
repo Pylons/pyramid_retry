@@ -1,6 +1,8 @@
+from __future__ import annotations
 import inspect
 from pyramid.config import PHASE1_CONFIG
 from pyramid.exceptions import ConfigurationError
+import typing as t
 from zope.interface import (
     Attribute,
     Interface,
@@ -8,6 +10,13 @@ from zope.interface import (
     classImplements,
     implementer,
 )
+
+if t.TYPE_CHECKING:  # pragma: no cover
+    from collections.abc import Callable
+    from pyramid.config import Configurator
+    from pyramid.request import Request
+    from pyramid.response import Response
+    from pyramid.router import Router
 
 
 class IRetryableError(Interface):
@@ -55,7 +64,9 @@ class BeforeRetry(object):
 
     """
 
-    def __init__(self, request, exception, response=None):
+    def __init__(
+        self, request: Request, exception: Exception, response: Response = None
+    ):
         self.request = request
         self.environ = request.environ
         self.exception = exception
@@ -67,7 +78,10 @@ class RetryableException(Exception):
     """A retryable exception should be raised when an error occurs."""
 
 
-def RetryableExecutionPolicy(attempts=3, activate_hook=None):
+def RetryableExecutionPolicy(
+    attempts: int = 3,
+    activate_hook: Callable[..., int | None] | None = None,
+) -> Callable[..., Response]:
     """
     Create a :term:`execution policy` that catches any
     :term:`retryable error` and sends it through the pipeline again up to
@@ -81,7 +95,7 @@ def RetryableExecutionPolicy(attempts=3, activate_hook=None):
     """
     assert attempts > 0
 
-    def retry_policy(environ, router):
+    def retry_policy(environ: dict[str, t.Any], router: Router) -> Response:
         # make the original request
         request_ctx = router.request_context(environ)
         request = request_ctx.begin()
@@ -164,7 +178,7 @@ def RetryableExecutionPolicy(attempts=3, activate_hook=None):
     return retry_policy
 
 
-def mark_error_retryable(error):
+def mark_error_retryable(error: t.Any) -> None:
     """
     Mark an exception instance or type as retryable. If this exception
     is caught by ``pyramid_retry`` then it may retry the request.
@@ -173,14 +187,14 @@ def mark_error_retryable(error):
     if isinstance(error, Exception):
         alsoProvides(error, IRetryableError)
     elif inspect.isclass(error) and issubclass(error, Exception):
-        classImplements(error, IRetryableError)
+        classImplements(error, IRetryableError)  # type: ignore[misc] # TODO: https://github.com/Shoobx/mypy-zope/issues/50
     else:
         raise ValueError(
             'only exception objects or types may be marked retryable'
         )
 
 
-def is_error_retryable(request, exc):
+def is_error_retryable(request: Request, exc: Exception | None) -> bool:
     """
     Return ``True`` if the exception is recognized as :term:`retryable error`.
 
@@ -197,7 +211,7 @@ def is_error_retryable(request, exc):
     )
 
 
-def is_last_attempt(request):
+def is_last_attempt(request: Request) -> bool:
     """
     Return ``True`` if the request is on its last attempt, meaning that
     ``pyramid_retry`` will not be issuing any new attempts, regardless of
@@ -213,7 +227,7 @@ def is_last_attempt(request):
     if attempt is None or attempts is None:
         return True
 
-    return attempt + 1 == attempts
+    return attempt + 1 == attempts  # type: ignore[no-any-return] # TODO: what's the best way to determine these?
 
 
 class RetryableErrorPredicate(object):
@@ -226,7 +240,7 @@ class RetryableErrorPredicate(object):
 
     """
 
-    def __init__(self, val, config):
+    def __init__(self, val: t.Any, config: Configurator):
         if not isinstance(val, bool):
             raise ConfigurationError(
                 'The "retryable_error" view predicate value must be '
@@ -234,12 +248,12 @@ class RetryableErrorPredicate(object):
             )
         self.val = val
 
-    def text(self):
+    def text(self) -> str:
         return 'retryable_error = %s' % (self.val,)
 
     phash = text
 
-    def __call__(self, context, request):
+    def __call__(self, context: t.Any, request: Request) -> bool:
         exc = getattr(request, 'exception', None)
         is_retryable = is_error_retryable(request, exc)
         return (self.val and is_retryable) or (
@@ -257,7 +271,7 @@ class LastAttemptPredicate(object):
 
     """
 
-    def __init__(self, val, config):
+    def __init__(self, val: t.Any, config: Configurator):
         if not isinstance(val, bool):
             raise ConfigurationError(
                 'The "last_retry_attempt" view predicate value must be '
@@ -265,17 +279,17 @@ class LastAttemptPredicate(object):
             )
         self.val = val
 
-    def text(self):
+    def text(self) -> str:
         return 'last_retry_attempt = %s' % (self.val,)
 
     phash = text
 
-    def __call__(self, context, request):
+    def __call__(self, contex: t.Any, request: Request) -> bool:
         is_last = is_last_attempt(request)
         return (self.val and is_last) or (not self.val and not is_last)
 
 
-def includeme(config):
+def includeme(config: Configurator) -> None:
     """
     Activate the ``pyramid_retry`` execution policy in your application.
 
@@ -294,7 +308,7 @@ def includeme(config):
     config.add_view_predicate('last_retry_attempt', LastAttemptPredicate)
     config.add_view_predicate('retryable_error', RetryableErrorPredicate)
 
-    def register():
+    def register() -> None:
         attempts = int(settings.get('retry.attempts') or 3)
         settings['retry.attempts'] = attempts
 
