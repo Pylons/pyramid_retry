@@ -82,12 +82,12 @@ def test_raising_nonretryable_is_not_caught(config):
 
     def bad_view(request):
         calls.append('fail')
-        raise Exception
+        raise RuntimeError
 
     config.add_view(bad_view)
     app = config.make_wsgi_app()
     app = webtest.TestApp(app)
-    with pytest.raises(Exception):
+    with pytest.raises(RuntimeError):
         app.get('/')
     assert calls == ['fail']
 
@@ -133,7 +133,7 @@ def test_retryable_exception_is_ignored_on_last_attempt(config):
     config.add_view(bad_view)
     app = config.make_wsgi_app()
     app = webtest.TestApp(app)
-    with pytest.raises(Exception):
+    with pytest.raises(RetryableException):
         app.get('/')
     assert calls == ['fail', 'fail', 'fail']
 
@@ -238,7 +238,7 @@ def test_activate_hook_overrides_default_attempts(config):
     config.add_view(bad_view)
     app = config.make_wsgi_app()
     app = webtest.TestApp(app)
-    with pytest.raises(Exception):
+    with pytest.raises(RetryableException):
         app.get('/')
     assert calls == ['fail']
 
@@ -264,7 +264,7 @@ def test_activate_hook_falls_back_to_default_attempts(config):
     config.add_view(bad_view)
     app = config.make_wsgi_app()
     app = webtest.TestApp(app)
-    with pytest.raises(Exception):
+    with pytest.raises(RetryableException):
         app.get('/')
     assert calls == ['fail', 'fail', 'fail']
 
@@ -279,7 +279,7 @@ def test_request_make_body_seekable_cleans_up_threadmanger_on_exception(
     assert len(manager.stack) == 0
     app = config.make_wsgi_app()
     app = webtest.TestApp(app)
-    with pytest.raises(Exception):
+    with pytest.raises(IOError):
         # Content-length=1 and empty body causes
         # webob.request.DisconnectionError:
         # The client disconnected while sending the body
@@ -299,7 +299,7 @@ def test_activate_hook_cleans_up_threadmanager_on_exception(config):
     assert len(manager.stack) == 0
 
     def activate_hook(request):
-        raise Exception
+        raise RuntimeError
 
     config.add_settings(
         {
@@ -309,7 +309,7 @@ def test_activate_hook_cleans_up_threadmanager_on_exception(config):
     )
     app = config.make_wsgi_app()
     app = webtest.TestApp(app)
-    with pytest.raises(Exception):
+    with pytest.raises(RuntimeError):
         app.get('/')
     # len(manager.stack) == 1 when you don't catch exception
     # from activate_hook and clean up.
