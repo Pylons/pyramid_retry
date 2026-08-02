@@ -10,6 +10,7 @@ include CONTRIBUTING.rst
 include CONTRIBUTORS.txt
 
 include .coveragerc
+include .mailmap
 include tox.ini rtd.txt
 
 recursive-exclude * __pycache__ *.py[cod]
