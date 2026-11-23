@@ -1,3 +1,16 @@
+unreleased
+==========
+
+- Drop support for Python 2.7 and 3.4 through 3.10.
+
+- Add support for Python 3.11, 3.12, 3.13, 3.14, and 3.15.
+
+- Stop using the deprecated ``pkg_resources`` api in the docs.
+
+- Switch packaging metadata from ``setup.py`` to ``pyproject.toml`` and use
+  an SPDX license expression. The ``testing`` and ``docs`` extras are replaced
+  by dependency groups.
+
 2.1.1 (2020-03-21)
 ==================
 
