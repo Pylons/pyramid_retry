@@ -1,6 +1,6 @@
 [project]
 name = "pyramid_retry"
-version = "2.2.dev0"
+version = "2.2"
 description = "An execution policy for Pyramid that supports retrying requests after certain failure exceptions."
 dynamic = ["readme"]
 
