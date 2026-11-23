@@ -1,10 +1,74 @@
+[project]
+name = "pyramid_retry"
+version = "2.2.dev0"
+description = "An execution policy for Pyramid that supports retrying requests after certain failure exceptions."
+dynamic = ["readme"]
+
+license = "MIT"
+license-files = ["LICENSE.txt"]
+authors = [
+  { name = "Michael Merickel", email = "pylons-discuss@googlegroups.com" },
+]
+
+requires-python = ">=3.11"
+dependencies = [
+  "pyramid >= 1.9",
+  "zope.interface",
+]
+
+keywords = ["attempt", "pyramid", "retry", "wsgi"]
+classifiers = [
+  "Development Status :: 5 - Production/Stable",
+  "Framework :: Pyramid",
+  "Intended Audience :: Developers",
+  "Natural Language :: English",
+  "Programming Language :: Python",
+  "Programming Language :: Python :: 3",
+  "Programming Language :: Python :: 3.11",
+  "Programming Language :: Python :: 3.12",
+  "Programming Language :: Python :: 3.13",
+  "Programming Language :: Python :: 3.14",
+  "Programming Language :: Python :: 3.15",
+  "Programming Language :: Python :: Implementation :: CPython",
+  "Programming Language :: Python :: Implementation :: PyPy",
+]
+
+[project.urls]
+Changelog = "https://docs.pylonsproject.org/projects/pyramid_retry/en/latest/changes.html"
+Documentation = "https://docs.pylonsproject.org/projects/pyramid_retry/en/latest/index.html"
+Homepage = "https://github.com/Pylons/pyramid_retry"
+"Issue Tracker" = "https://github.com/Pylons/pyramid_retry/issues"
+
+[dependency-groups]
+docs = [
+  "Sphinx",
+  "pylons-sphinx-themes",
+  "repoze.sphinx.autointerface",
+]
+lint = [
+  "black ~= 26.10.0",
+  "build",
+  "check-manifest",
+  "flake8",
+  "flake8-bugbear",
+  "isort",
+  "readme_renderer",
+  "twine",
+]
+testing = [
+  "WebTest",
+  "coverage >= 5.0",
+  "pytest",
+  "pytest-cov",
+]
+
 [build-system]
-requires = ["setuptools>=41.0.1", "wheel"]
+requires = ["setuptools >= 77"]  # SPDX license expressions
 build-backend = "setuptools.build_meta"
 
 [tool.black]
 line-length = 79
-target_version = ["py37"]
+target-version = ["py311", "py312", "py313", "py314", "py315"]
 skip-string-normalization = true
 exclude = '''
 /(
@@ -19,7 +83,7 @@ exclude = '''
 )/
 '''
 
- # This next section only exists for people that have their editors
+# This next section only exists for people that have their editors
 # automatically call isort, black already sorts entries on its own when run.
 [tool.isort]
 profile = "black"
@@ -31,3 +95,16 @@ no_lines_before = "THIRDPARTY"
 sections = "FUTURE,THIRDPARTY,FIRSTPARTY,LOCALFOLDER"
 default_section = "THIRDPARTY"
 known_first_party = "pyramid_retry"
+
+[tool.pytest.ini_options]
+python_files = "test_*.py"
+testpaths = [
+  "src/pyramid_retry",
+  "tests",
+]
+
+[tool.setuptools.packages.find]
+where = ["src"]
+
+[tool.setuptools.dynamic]
+readme = { file = ["README.rst", "CHANGES.rst"], content-type = "text/x-rst" }

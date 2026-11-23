@@ -14,9 +14,9 @@
 # serve to show the default.
 
 import datetime
+import importlib.metadata
 import sys
 import os
-import pkg_resources
 
 # If extensions (or modules to document with autodoc) are in another
 # directory, add these directories to sys.path here. If the directory is
@@ -72,7 +72,7 @@ copyright = u'2017-%s, Michael Merickel' % thisyear
 # the built documents.
 #
 # The short X.Y version.
-version = pkg_resources.get_distribution('pyramid_retry').version
+version = importlib.metadata.version('pyramid_retry')
 # The full version, including alpha/beta/rc tags.
 release = version
 
