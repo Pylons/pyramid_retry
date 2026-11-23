@@ -91,7 +91,7 @@ Of course you probably wouldn't write actual code that expects to fail like
 this. More realistically you may use a library like pyramid_tm_ to translate
 certain transactional errors marked as "transient" into retryable errors.
 
-.. _pyramid_tm: https://docs.pylonsproject.org/projects/pyramid-tm/en/latest/
+.. _pyramid_tm: https://docs.pylonsproject.org/projects/pyramid_tm/en/latest/
 
 Custom Retryable Errors
 -----------------------
