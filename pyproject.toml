@@ -35,7 +35,7 @@ classifiers = [
 
 [project.urls]
 Changelog = "https://docs.pylonsproject.org/projects/pyramid_retry/en/latest/changes.html"
-Documentation = "https://docs.pylonsproject.org/projects/pyramid_retry/en/latest/index.html"
+Documentation = "https://docs.pylonsproject.org/projects/pyramid_retry/en/latest/"
 Homepage = "https://github.com/Pylons/pyramid_retry"
 "Issue Tracker" = "https://github.com/Pylons/pyramid_retry/issues"
 
