@@ -11,7 +11,7 @@ include CONTRIBUTORS.txt
 
 include pyproject.toml
 include .mailmap
-include .coveragerc .flake8
+include .flake8
 include tox.ini .readthedocs.yaml
 
 recursive-exclude * __pycache__ *.py[cod]
